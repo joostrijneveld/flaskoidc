@@ -4,6 +4,7 @@ import logging
 import time
 from authlib.integrations.flask_client import OAuth
 from authlib.oidc.core.errors import LoginRequiredError
+from authlib.integrations.base_client.errors import MismatchingStateError
 from flask import redirect, Flask, request, session, abort
 from flask.helpers import get_debug_flag, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -143,6 +144,8 @@ class FlaskOIDC(Flask):
                 session["user"] = user
                 session["user"]["__id"] = user_id
                 return redirect(self.config.get("OVERWRITE_REDIRECT_URI"))
+            except MismatchingStateError:
+                return redirect(url_for("login", _external=True))
             except Exception as ex:
                 LOGGER.exception(ex)
                 raise ex
